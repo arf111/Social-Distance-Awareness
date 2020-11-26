@@ -87,10 +87,12 @@ def calc_dist(inp_vid, out_vid_path, yolo_v):
         # --------------------------YOLOv5-------------------------#
         # Get the centroids and bbox visualizer
 
-        model = Model(frame,"yolo_")
+        model = Model(frame, yolo_v)
 
         img = model.getFrameBbox()
         centroids = model.centroids
+        
+        
 
         break
     
@@ -110,7 +112,7 @@ if __name__== "__main__":
     
     parser.add_argument('--input_path', default='./testing/TRIDE.mp4', help='Path for input video')
     parser.add_argument('--output_dir', default='./output/', help='Path for output video')
-    parser.add_argument('--yolov', default='yolov5m', help='Path for output video')
+    parser.add_argument('--yolov', default='yolov5s', help='Path for output video')
     
     options = parser.parse_args()
 
