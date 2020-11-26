@@ -1,2 +1,3 @@
 # ignore the detectron2 folder
 dir_to_ignore/detectron2
+dir_to_ignore/social_dist

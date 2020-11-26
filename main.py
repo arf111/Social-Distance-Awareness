@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import argparse
 import utils
+from model.model import Model
 
 mouse_pts = []
 
@@ -25,7 +26,7 @@ def get_Points(event, x, y, flags, params):
                 cv2.line(image, (x,y), (mouse_pts[0][0], mouse_pts[0][1]), (0,0,0), 2)
         
 
-def calc_dist(inp_vid, out_vid_path):
+def calc_dist(inp_vid, out_vid_path, yolo_v):
     """Calculate the distance between peoples in a frame."""
 
     cap = cv2.VideoCapture(inp_vid)
@@ -82,12 +83,17 @@ def calc_dist(inp_vid, out_vid_path):
         cv2.polylines(frame, [np.array(mouse_pts[:4])], True, (0,0,0), 2)
 
         cv2.imwrite("out.jpg",frame)
-        break
-        
+
         # --------------------------YOLOv5-------------------------#
         # Get the centroids and bbox visualizer
-        
-        
+
+        model = Model(frame,"yolo_")
+
+        img = model.getFrameBbox()
+        centroids = model.centroids
+
+        break
+    
         # Press 'q' for exit.
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -103,16 +109,17 @@ if __name__== "__main__":
     parser = argparse.ArgumentParser()
     
     parser.add_argument('--input_path', default='./testing/TRIDE.mp4', help='Path for input video')
-                    
     parser.add_argument('--output_dir', default='./output/', help='Path for output video')
+    parser.add_argument('--yolov', default='yolov5m', help='Path for output video')
     
     options = parser.parse_args()
 
     inp_vid = options.input_path
     out_vid_path = options.output_dir
+    yolo_v = options.yolov
 
     cv2.namedWindow("image")
 
     cv2.setMouseCallback("image",get_Points)
 
-    calc_dist(inp_vid, out_vid_path)
+    calc_dist(inp_vid, out_vid_path, yolo_v)
