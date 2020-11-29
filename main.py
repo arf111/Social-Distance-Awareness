@@ -1,8 +1,8 @@
+import torch
 import cv2
 import numpy as np
 import argparse
-import utils
-from model.model import Model
+from utils.safedist_utils import draw_RiskLine, show_Detection, get_Centroids_Lis
 
 mouse_pts = []
 
@@ -12,32 +12,34 @@ np.random.seed(42)
 def get_Points(event, x, y, flags, params):
     """Get the points from opencv's setMouseCallBack function."""
     if event == cv2.EVENT_LBUTTONDOWN:
-        mouse_pts.append((x,y))
+        mouse_pts.append((x, y))
 
         if len(mouse_pts) <= 4:
-            cv2.circle(image, (x,y), 5, (0,255,0), 5)
+            cv2.circle(image, (x, y), 5, (0, 255, 0), 5)
         else:
-            cv2.circle(image, (x,y), 5, (255,0,0), 5)
+            cv2.circle(image, (x, y), 5, (255, 0, 0), 5)
 
         if len(mouse_pts) > 1 and len(mouse_pts) <= 4:
-            cv2.line(image, (x,y), (mouse_pts[len(mouse_pts)-2][0], mouse_pts[len(mouse_pts)-2][1]), (0,0,0), 2)
+            cv2.line(image, (x, y), (mouse_pts[len(
+                mouse_pts)-2][0], mouse_pts[len(mouse_pts)-2][1]), (0, 0, 0), 2)
 
             if len(mouse_pts) == 4:
-                cv2.line(image, (x,y), (mouse_pts[0][0], mouse_pts[0][1]), (0,0,0), 2)
-        
+                cv2.line(image, (x, y),
+                         (mouse_pts[0][0], mouse_pts[0][1]), (0, 0, 0), 2)
 
-def calc_dist(inp_vid, out_vid_path, yolo_v):
+def calc_dist(inp_vid, out_vid_path, yolo_v, conf_score):
     """Calculate the distance between peoples in a frame."""
 
     cap = cv2.VideoCapture(inp_vid)
 
-    inp_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    inp_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     inp_fps = int(cap.get(cv2.CAP_PROP_FPS))
 
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(out_vid_path+"/result.avi", fourcc, inp_fps,  (inp_width, inp_height))
+    out = cv2.VideoWriter(out_vid_path+"/result.avi",
+                          fourcc, inp_fps,  (int(cap.get(3)), int(cap.get(4))))
+
+    model = torch.hub.load('ultralytics/yolov5', yolo_v, pretrained=True).fuse().autoshape()
 
     first_frame = True
 
@@ -69,59 +71,80 @@ def calc_dist(inp_vid, out_vid_path, yolo_v):
         # The points must be drawn in this order.
         src_points = np.float32(np.array(mouse_pts[:4]))
         dest_points = np.float32([[0, H], [0, 0], [W, 0], [W, H]])
+        
         pers_matrix = cv2.getPerspectiveTransform(src_points, dest_points)
+        warped_img = cv2.warpPerspective(frame, pers_matrix, (W, H))
+        warped_imgH, warped_imgW = warped_img.shape[0], warped_img.shape[1] 
 
         # User-defined points to get safe distance (approx 6 ft)
-        safe_points = np.float32(np.array([mouse_pts[4:6]])) # perspectiveTransform expects 2D/3D channel of floating point array where each element is 2D/3D vector.
-        warped_safe_points = cv2.perspectiveTransform(safe_points, pers_matrix)[0]
+        # perspectiveTransform expects 2D/3D channel of floating point array where each element is 2D/3D vector.
+        safe_points = np.float32(np.array([mouse_pts[4:6]]))
+        warped_safe_points = cv2.perspectiveTransform(
+            safe_points, pers_matrix)[0]
 
         # From user-defined, we'll get the safe distance (approx 6 ft). Euclidean distance
         safe_dist = np.sqrt((warped_safe_points[0][0] - warped_safe_points[1][0])**2 + (
             warped_safe_points[0][1] - warped_safe_points[1][1]) ** 2)
+
+        # Draw the designated region in the image
+        cv2.polylines(frame, [np.array(mouse_pts[:4])], True, (0, 0, 0), 2)
         
-        # Draw the rectangle in the image
-        cv2.polylines(frame, [np.array(mouse_pts[:4])], True, (0,0,0), 2)
-
-        cv2.imwrite("out.jpg",frame)
-
         # --------------------------YOLOv5-------------------------#
         # Get the centroids and bbox visualizer
 
-        model = Model(frame, yolo_v)
-
-        img = model.getFrameBbox()
-        centroids = model.centroids
+        results = model(frame[:, :, ::-1])
         
+        det_points = results.pred[0][:,:] # detected bboxes with confidence score and class.
+        centroids = results.xywh[0][:,:2]
         
+        centroids_arr = get_Centroids_Lis(det_points, centroids, conf_score)
+        warped_centroids = cv2.perspectiveTransform(centroids_arr, pers_matrix)
+        
+        warped_centroids_lis = list()
 
-        break
-    
+        for i in range(warped_centroids.shape[0]):
+            warped_centroids_lis.append(
+                [warped_centroids[i][0][0], warped_centroids[i][0][1]])
+        
+        # Show detection on main frame and draw line.
+        draw_RiskLine(frame, safe_dist, centroids_arr, warped_centroids_lis, warped_imgH, warped_imgW)
+        show_Detection(frame, centroids_arr, warped_centroids_lis, det_points, warped_imgH, warped_imgW)
+        
+        out.write(frame)
+        
+        cv2.imshow('output', frame)
         # Press 'q' for exit.
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-    
+
     # Release everything if job is finished
     cap.release()
     out.release()
     cv2.destroyAllWindows()
-        
 
-if __name__== "__main__":
+
+if __name__ == "__main__":
     # Receives arguments specified by user
     parser = argparse.ArgumentParser()
-    
-    parser.add_argument('--input_path', default='./testing/TRIDE.mp4', help='Path for input video')
-    parser.add_argument('--output_dir', default='./output/', help='Path for output video')
-    parser.add_argument('--yolov', default='yolov5s', help='Path for output video')
-    
+
+    parser.add_argument(
+        '--input_path', default='./test/TRIDE.mp4', help='Path for input video')
+    parser.add_argument('--output_dir', default='./output/',
+                        help='Path for output video')
+    parser.add_argument('--yolov', default='yolov5s',
+                        help='Load yolov5 model. The models are yolov5s = small, yolov5m = medium, yolov5l = large.')
+    parser.add_argument('--conf_score', default=0.75,
+                        help = 'Detection confidence score. Write as floating point value')
+
     options = parser.parse_args()
 
     inp_vid = options.input_path
     out_vid_path = options.output_dir
     yolo_v = options.yolov
+    conf_score = options.conf_score
 
     cv2.namedWindow("image")
 
-    cv2.setMouseCallback("image",get_Points)
+    cv2.setMouseCallback("image", get_Points)
 
-    calc_dist(inp_vid, out_vid_path, yolo_v)
+    calc_dist(inp_vid, out_vid_path, yolo_v, conf_score)
