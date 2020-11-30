@@ -4,10 +4,10 @@ Project measuring if people follow the appropriate distance between themselves i
 - Bird eye view is implemented to precisely measure the distance between detected objects.
 - For detection, Yolov5 model is used.
 
-<img src='imgs/SDAware.gif' width = 600>
+<img src='imgs/SDAware.gif'>
 
 ## Prerequisites
----
+
 Python 3.6 or later with dependencies [requirements.txt](requirements.txt) installed. Run:
 
 ```
@@ -15,7 +15,7 @@ $ pip install -r requirements.txt
 ```
 
 ## Getting Started
----
+
 To run the program, perform:
 
 ```
@@ -29,7 +29,7 @@ $ python main.py --yolov yolov5m
 ```
 
 ## Usage
----
+
 
 The following steps occur when user runs the [main.py](main.py) file:
 
@@ -38,6 +38,6 @@ The following steps occur when user runs the [main.py](main.py) file:
 3. Finally, the violated distances will be shown in original frame in accordance with the bird view frame. Yolov5 is used to detect each person.
 
 ## References
----
+
 1. Perspective Transformation: https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_geometric_transformations/py_geometric_transformations.html
 2. Yolov5: https://github.com/ultralytics/yolov5
