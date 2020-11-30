@@ -33,17 +33,17 @@ def draw_RiskLine(img, bird_view, minm_dist, centroids_arr, transformed_centroid
     @ transformed_centroids: center of detected boundary box
     """
     if len(transformed_centroids) >= 2:
-    # Iterate over every possible 2 by 2 between the points combinations 
         for i in range(len(transformed_centroids)-1):
             for j in range(len(transformed_centroids)):
                 if i!=j:
                     pair = [[transformed_centroids[i][0], transformed_centroids[i][1]], 
                         [transformed_centroids[j][0], transformed_centroids[j][1]]]
                     if checkIfReg(pair, warped_imgW, warped_imgH): 
-                    # Check if the distance between each combination of points is less than the minimum distance chosen
+                    # Check if the distance between each detected people is less than the safe distance chosen
                         if int(math.sqrt( (pair[0][0] - pair[1][0])**2 + (pair[0][1] - pair[1][1])**2 )) < int(minm_dist): 
                             img = cv2.line(img, (int(centroids_arr[i][0][0]), int(centroids_arr[i][0][1])), 
                                     (int(centroids_arr[j][0][0]), int(centroids_arr[j][0][1])), color=(0,0,255), thickness=2) # red line
+                            # draw the violated distance on the bird view.
                             bird_view = cv2.line(bird_view, (int(pair[0][0]), int(pair[0][1])), 
                                     (int(pair[1][0]), int(pair[1][1])), color=(0,0,255), thickness=5)
     
