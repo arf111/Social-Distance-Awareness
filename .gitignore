@@ -1,5 +1,8 @@
 # ignore the detectron2 folder
 dir_to_ignore/detectron2
 dir_to_ignore/social_dist
+dir_to_ignore/.vscode
+dir_to_ignore/__pycache__
 yolov5m.pt
 yolov5s.pt
+yolov5l.pt

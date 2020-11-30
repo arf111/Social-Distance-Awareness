@@ -28,7 +28,12 @@ def get_Points(event, x, y, flags, params):
                          (mouse_pts[0][0], mouse_pts[0][1]), (0, 0, 0), 2)
 
 def calc_dist(inp_vid, out_vid_path, yolo_v, conf_score):
-    """Calculate the distance between peoples in a frame."""
+    """Calculate the distance between peoples in a frame. Shows the result in a frame, and generates a video.
+    @ inp_vid: input video path
+    @ out_vid_path: output video path
+    @ yolo_v: yolov version
+    @ conf_score: confidence score of detection
+    """
 
     cap = cv2.VideoCapture(inp_vid)
 
@@ -36,7 +41,7 @@ def calc_dist(inp_vid, out_vid_path, yolo_v, conf_score):
 
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(out_vid_path+"/result.avi",
+    out = cv2.VideoWriter(out_vid_path+"result.avi",
                           fourcc, inp_fps,  (int(cap.get(3)), int(cap.get(4))))
 
     model = torch.hub.load('ultralytics/yolov5', yolo_v, pretrained=True).fuse().autoshape()
@@ -76,8 +81,8 @@ def calc_dist(inp_vid, out_vid_path, yolo_v, conf_score):
 
             # bird eye view
             bird_view = np.zeros((warped_imgH, warped_imgW, 3), np.uint8)
-            # bird eye view color background
-            bird_view[:] = (227, 240, 197)
+            # bird eye view color background 190, 191, 184
+            bird_view[:] = (184, 191, 190)
             
             # User-defined points to get safe distance (approx 6 ft)
             # perspectiveTransform expects 2D/3D channel of floating point array where each element is 2D/3D vector.
@@ -142,14 +147,10 @@ if __name__ == "__main__":
     # Receives arguments specified by user
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        '--input_path', default='./test/TRIDE.mp4', help='Path for input video')
-    parser.add_argument('--output_dir', default='./output/',
-                        help='Path for output video')
-    parser.add_argument('--yolov', default='yolov5s',
-                        help='Load yolov5 model. The models are yolov5s = small, yolov5m = medium, yolov5l = large.')
-    parser.add_argument('--conf_score', default=0.75,
-                        help = 'Detection confidence score. Write as floating point value')
+    parser.add_argument('--input_path', default='./test/TRIDE.mp4', help='Path for input video')
+    parser.add_argument('--output_dir', default='./output/', help='Path for output video')
+    parser.add_argument('--yolov', default='yolov5m', help='Load yolov5 model. The models are yolov5s = small, yolov5m = medium, yolov5l = large.')
+    parser.add_argument('--conf_score', default=0.70, help = 'Detection confidence score. Write as floating point value')
 
     options = parser.parse_args()
 
