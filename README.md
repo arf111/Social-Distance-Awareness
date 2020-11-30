@@ -1,7 +1,7 @@
 # Social-Distance-Awareness
 Project measuring if people follow the appropriate distance between themselves in order to prevent dispersement of COVID-19 disease.
 
-- Bird eye view is implemented to precisely measure the distance between detected objects.
+- Bird eye view is implemented to precisely measure the distance between detected objects. The red lines indicate the violated distance (6 ft).
 - For detection, Yolov5 model is used.
 
 <img src='imgs/SDAware.gif'>
