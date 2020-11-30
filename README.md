@@ -30,7 +30,6 @@ $ python main.py --yolov yolov5m
 
 ## Usage
 
-
 The following steps occur when user runs the [main.py](main.py) file:
 
 1. First of all, a frame will be given of the input video to define the boundary region where the detection will occur. The user must click 4 points in the frame in the order of bottom-left, top-left, top-right, and bottom-right. Note that this ordering is really important to accurately find out the distance between people. The 4 points must form a rectangle in the designated region. 
