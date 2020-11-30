@@ -22,7 +22,7 @@ To run the program, perform:
 $ python main.py
 ```
 
-To use different model of Yolov5 use yolov5s for small, yolov5m for medium, or yolov5l for large model. For example:
+To use different model of Yolov5, use yolov5s for small, yolov5m for medium, yolov5l for large, or yolov5x for extra large model. More details [here](https://github.com/ultralytics/yolov5). For example:
 
 ```
 $ python main.py --yolov yolov5m
