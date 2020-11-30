@@ -33,7 +33,7 @@ $ python main.py --yolov yolov5m
 
 The following steps occur when user runs the [main.py](main.py) file:
 
-1. First of all, a frame will be given of the input video to define the boundary region where the detection will occur. The user must click 4 points in the frame in the order of bottom-left, top-left, top-right, and bottom-right. Note that this ordering is really important to accurately find out the distances between people. The 4 points must form a rectangle in the designated region. 
+1. First of all, a frame will be given of the input video to define the boundary region where the detection will occur. The user must click 4 points in the frame in the order of bottom-left, top-left, top-right, and bottom-right. Note that this ordering is really important to accurately find out the distance between people. The 4 points must form a rectangle in the designated region. 
 2. After selecting 4 points, 2 extra points are needed from the user to define the approx. 6 ft. distance in the frame. This will be user-defined.
 3. Finally, the violated distances will be shown in original frame in accordance with the bird view frame. Yolov5 is used to detect each person.
 
